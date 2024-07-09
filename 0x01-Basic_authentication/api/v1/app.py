@@ -6,11 +6,11 @@ Flask app module.
 from flask import Flask, jsonify, abort
 from flask_cors import CORS
 import os
+from api.v1.views import app_views
 
 app = Flask(__name__)
 CORS(app)
 
-from api.v1.views import app_views
 app.register_blueprint(app_views)
 
 # Initialize the auth variable
@@ -30,7 +30,8 @@ def before_request():
     if auth is None:
         return
 
-    excluded_paths = ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    excluded_paths = ['/api/v1/status/',
+                      '/api/v1/unauthorized/', '/api/v1/forbidden/']
 
     if not auth.require_auth(request.path, excluded_paths):
         return
