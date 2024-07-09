@@ -2,6 +2,7 @@
 """
 Flask app module.
 """
+from flask import request
 
 from flask import Flask, jsonify, abort
 from flask_cors import CORS
