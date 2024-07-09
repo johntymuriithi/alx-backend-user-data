@@ -2,12 +2,11 @@
 """
 Flask app module.
 """
-from flask import request
 
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from flask_cors import CORS
-import os
 from api.v1.views import app_views
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -18,7 +17,10 @@ app.register_blueprint(app_views)
 auth = None
 AUTH_TYPE = os.getenv("AUTH_TYPE")
 
-if AUTH_TYPE:
+if AUTH_TYPE == "basic_auth":
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
+else:
     from api.v1.auth.auth import Auth
     auth = Auth()
 
