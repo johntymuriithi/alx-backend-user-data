@@ -1,74 +1,82 @@
 #!/usr/bin/env python3
+"""Auth module for API authentication
 """
-Module for API authentication management.
-"""
-
-from typing import List, TypeVar
 from flask import request
+from typing import List, TypeVar
+import os
 
 
 class Auth:
-    """
-    A class to manage API authentication.
-    """
+    """Auth class to manage API authentication"""
 
-    def require_auth(self, path: str, excluded_paths: List[str]) \
-            -> bool:
-        """
-        Checks if authentication is required for a
-         given path based on excluded paths.
-
+    def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
+        """Using this function to check if authentication is required
+        for a given path
         Args:
-            path (str): The path to check.
-            excluded_paths (List[str]): List
-            of paths to exclude from authentication.
-
+            path (str): The path to check
+            excluded_paths (List[str]): A list of paths that do not
+            require authentication
         Returns:
-            bool: True if authentication is required,
-             False otherwise.
+            bool: True if authentication is required, False otherwise
         """
         if path is None:
             return True
         if excluded_paths is None or len(excluded_paths) == 0:
-            return False
+            return True
 
-        # Check each excluded path
+        # we normalize paths to have a / at the end if it doesn't have it
+        # if not path.endswith("/"):
+        #     path += "/"
+        # # check if normalized path is in the excluded_paths
+        # if path in excluded_paths:
+        #     return False
+
+        # task 13 update: normalize the paths by removing trailing slashes
+        normalized_path = path.rstrip('/')
+
         for excluded_path in excluded_paths:
             if excluded_path.endswith('*'):
-                # Remove the '*' from the end to match prefixes
-                if path.startswith(excluded_path[:-1]):
+                if normalized_path.startswith(excluded_path[:-1]):
                     return False
-            elif path == excluded_path:
+            elif normalized_path == excluded_path.rstrip('/'):
                 return False
 
         return True
 
     def authorization_header(self, request=None) -> str:
-        """
-        Returns the value of the Authorization
-        header from the request.
-
+        """Retrieves the authorization header from the request
         Args:
-            request: The Flask request object.
-
+            request (flask.Request): The Flask request object
         Returns:
-            str: The value of the Authorization header,
-            or None if not present.
+            str: Value of the authorization header, None if not present
+        """
+        if request is None:
+            return None
+        # get the value of the header
+        header_value = request.headers.get('Authorization', None)
+        return header_value
+
+    def current_user(self, request=None) -> TypeVar('User'):
+        """Retrieves the current user from the request
+        Args:
+            request (flask.Request): The Flask request object
+        Returns:
+            TypeVar('User'): None for now, logic will be implemented later
+        """
+        return None
+
+    def session_cookie(self, request=None):
+        """ Retrieves a cookie value from a request
+        Args:
+            request (flask.Request): The Flask request object
+        Returns:
+            str: The cookie value, None if not present
         """
         if request is None:
             return None
 
-        return request.headers.get("Authorization")
+        session_name = os.getenv('SESSION_NAME')
+        if session_name is None:
+            return None
 
-    def current_user(self, request=None) -> TypeVar('User'):
-        """
-        Retrieves the current user based on the request.
-
-        Args:
-            request: The Flask request object.
-
-        Returns:
-            TypeVar('User'):
-            None, indicating that no user is associated with the request.
-        """
-        return None
+        return request.cookies.get(session_name)
